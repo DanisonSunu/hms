@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Appointments{% endblock %}{% block breadcrumb %}Appointments{% endblock %}
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between">
+  <div><h2><i class="bi bi-calendar-check me-2" style="color:#0d9488"></i>Appointments</h2><p>View and manage patient appointments</p></div>
+  {% if current_user.role in ('admin','staff') %}<a href="{{ url_for('appointments.add_appointment') }}" class="btn btn-teal"><i class="bi bi-plus-lg me-1"></i>New Appointment</a>{% endif %}
+</div>
+<div class="card mb-3"><div class="card-body py-2"><form method="GET" class="d-flex gap-2">
+  <select name="status" class="form-select w-auto"><option value="">All Statuses</option>{% for s in ['Scheduled','Completed','Cancelled'] %}<option {{ 'selected' if s==status_filter }}>{{ s }}</option>{% endfor %}</select>
+  <button class="btn btn-teal">Filter</button>
+  {% if status_filter %}<a href="{{ url_for('appointments.list_appointments') }}" class="btn btn-outline-secondary">Clear</a>{% endif %}
+</form></div></div>
+<div class="card"><div class="card-header py-3">Appointments <span class="badge bg-secondary ms-1">{{ appointments|length }}</span></div>
+<div class="card-body p-0"><div class="table-responsive">
+<table class="table table-hover mb-0">
+  <thead><tr><th class="ps-3">#</th><th>Patient</th><th>Doctor</th><th>Date</th><th>Time</th><th>Status</th><th>Notes</th>{% if current_user.role in ('admin','staff') %}<th class="text-end pe-3">Actions</th>{% endif %}</tr></thead>
+  <tbody>
+  {% for a in appointments %}
+  <tr>
+    <td class="ps-3 text-muted">{{ a.appointment_id }}</td>
+    <td><strong>{{ a.patient.name }}</strong></td><td>{{ a.doctor.name }}</td>
+    <td>{{ a.date }}</td><td>{{ a.time }}</td>
+    <td><span class="badge-status status-{{ a.status|lower }}">{{ a.status }}</span></td>
+    <td class="text-muted" style="font-size:.8rem;max-width:130px">{{ a.notes or '—' }}</td>
+    {% if current_user.role in ('admin','staff') %}
+    <td class="text-end pe-3">
+      <a href="{{ url_for('appointments.edit_appointment',appt_id=a.appointment_id) }}" class="btn btn-sm btn-outline-primary me-1"><i class="bi bi-pencil"></i></a>
+      <form method="POST" action="{{ url_for('appointments.delete_appointment',appt_id=a.appointment_id) }}" class="d-inline" onsubmit="return confirm('Delete appointment?')">
+        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+    </td>{% endif %}
+  </tr>
+  {% else %}<tr><td colspan="8" class="text-center text-muted py-5"><i class="bi bi-calendar-x fs-2 d-block mb-2"></i>No appointments found.</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div></div></div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Staff{% endblock %}{% block breadcrumb %}Staff{% endblock %}
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between">
+  <div><h2><i class="bi bi-person-workspace me-2" style="color:#0d9488"></i>Staff</h2><p>Hospital staff directory</p></div>
+  {% if current_user.role == 'admin' %}<a href="{{ url_for('staff.add_staff') }}" class="btn btn-teal"><i class="bi bi-plus-lg me-1"></i>Add Staff</a>{% endif %}
+</div>
+<div class="card mb-3"><div class="card-body py-2"><form method="GET" class="d-flex gap-2">
+  <select name="role" class="form-select w-auto"><option value="">All Roles</option>{% for r in roles %}<option {{ 'selected' if r==role_filter }}>{{ r }}</option>{% endfor %}</select>
+  <button class="btn btn-teal">Filter</button>
+  {% if role_filter %}<a href="{{ url_for('staff.list_staff') }}" class="btn btn-outline-secondary">Clear</a>{% endif %}
+</form></div></div>
+<div class="card"><div class="card-header py-3">Staff Members <span class="badge bg-secondary ms-1">{{ staff_list|length }}</span></div>
+<div class="card-body p-0"><table class="table table-hover mb-0">
+  <thead><tr><th class="ps-3">Name</th><th>Role</th><th>Department</th><th>Phone</th><th>Email</th>{% if current_user.role=='admin' %}<th class="text-end pe-3">Actions</th>{% endif %}</tr></thead>
+  <tbody>
+  {% for s in staff_list %}
+  <tr>
+    <td class="ps-3 fw-semibold">{{ s.name }}</td>
+    <td><span class="badge bg-info bg-opacity-15 text-info">{{ s.role }}</span></td>
+    <td class="text-muted">{{ s.department or '—' }}</td><td>{{ s.phone }}</td><td class="text-muted">{{ s.email or '—' }}</td>
+    {% if current_user.role == 'admin' %}
+    <td class="text-end pe-3">
+      <a href="{{ url_for('staff.edit_staff',staff_id=s.staff_id) }}" class="btn btn-sm btn-outline-primary me-1"><i class="bi bi-pencil"></i></a>
+      <form method="POST" action="{{ url_for('staff.delete_staff',staff_id=s.staff_id) }}" class="d-inline" onsubmit="return confirm('Remove {{ s.name }}?')">
+        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+    </td>{% endif %}
+  </tr>
+  {% else %}<tr><td colspan="6" class="text-center text-muted py-4">No staff found.</td></tr>{% endfor %}
+  </tbody>
+</table></div></div>
+{% endblock %}

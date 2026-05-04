@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Edit Item{% endblock %}{% block breadcrumb %}Inventory / Edit{% endblock %}
+{% block content %}
+<div class="page-header"><h2><i class="bi bi-pencil-square me-2" style="color:#0d9488"></i>Edit Inventory Item</h2></div>
+<div class="row justify-content-center"><div class="col-lg-7"><div class="card"><div class="card-header py-3">Item Details</div>
+<div class="card-body"><form method="POST"><div class="row g-3">
+  <div class="col-12"><label class="form-label">Item Name *</label><input type="text" name="item_name" class="form-control" value="{{ item.item_name }}" required/></div>
+  <div class="col-md-6"><label class="form-label">Category</label>
+    <select name="category" class="form-select">{% for c in ['Medicine','Equipment','Consumable'] %}<option {{ 'selected' if c==item.category }}>{{ c }}</option>{% endfor %}</select></div>
+  <div class="col-md-3"><label class="form-label">Quantity *</label><input type="number" name="quantity" class="form-control" value="{{ item.quantity }}" required/></div>
+  <div class="col-md-3"><label class="form-label">Unit</label><input type="text" name="unit" class="form-control" value="{{ item.unit }}"/></div>
+  <div class="col-md-6"><label class="form-label">Unit Price (Rs.)</label><input type="number" name="unit_price" class="form-control" step="0.01" value="{{ item.unit_price }}"/></div>
+  <div class="col-md-6"><label class="form-label">Supplier</label><input type="text" name="supplier" class="form-control" value="{{ item.supplier or '' }}"/></div>
+</div><hr class="my-3"/>
+<div class="d-flex gap-2"><button type="submit" class="btn btn-teal px-4">Save Changes</button>
+<a href="{{ url_for('inventory.list_inventory') }}" class="btn btn-outline-secondary">Cancel</a></div>
+</form></div></div></div></div>
+{% endblock %}

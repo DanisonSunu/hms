@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Add Staff{% endblock %}{% block breadcrumb %}Staff / Add{% endblock %}
+{% block content %}
+<div class="page-header"><h2><i class="bi bi-person-plus me-2" style="color:#0d9488"></i>Add Staff Member</h2></div>
+<div class="row justify-content-center"><div class="col-lg-7"><div class="card"><div class="card-header py-3">Staff Details</div>
+<div class="card-body"><form method="POST"><div class="row g-3">
+  <div class="col-12"><label class="form-label">Full Name *</label><input type="text" name="name" class="form-control" required/></div>
+  <div class="col-md-6"><label class="form-label">Role *</label><input type="text" name="role" class="form-control" placeholder="e.g. Nurse, Receptionist" required/></div>
+  <div class="col-md-6"><label class="form-label">Department</label><input type="text" name="department" class="form-control"/></div>
+  <div class="col-md-6"><label class="form-label">Phone *</label><input type="tel" name="phone" class="form-control" required/></div>
+  <div class="col-md-6"><label class="form-label">Email</label><input type="email" name="email" class="form-control"/></div>
+</div><hr class="my-3"/>
+<div class="d-flex gap-2"><button type="submit" class="btn btn-teal px-4"><i class="bi bi-check-lg me-1"></i>Add Staff</button>
+<a href="{{ url_for('staff.list_staff') }}" class="btn btn-outline-secondary">Cancel</a></div>
+</form></div></div></div></div>
+{% endblock %}

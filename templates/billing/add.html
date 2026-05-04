@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Create Bill{% endblock %}{% block breadcrumb %}Billing / New{% endblock %}
+{% block content %}
+<div class="page-header"><h2><i class="bi bi-receipt me-2" style="color:#0d9488"></i>Create Bill</h2></div>
+<div class="row justify-content-center"><div class="col-lg-7"><div class="card"><div class="card-header py-3">Bill Details</div>
+<div class="card-body"><form method="POST"><div class="row g-3">
+  <div class="col-12"><label class="form-label">Patient *</label>
+    <select name="patient_id" class="form-select" required><option value="">Select Patient…</option>{% for p in patients %}<option value="{{ p.patient_id }}">{{ p.name }}</option>{% endfor %}</select></div>
+  <div class="col-md-6"><label class="form-label">Amount (Rs.) *</label><input type="number" name="amount" class="form-control" step="0.01" min="0" required/></div>
+  <div class="col-md-6"><label class="form-label">Payment Status</label>
+    <select name="payment_status" class="form-select"><option>Pending</option><option>Paid</option><option>Cancelled</option></select></div>
+  <div class="col-12"><label class="form-label">Description</label><textarea name="description" class="form-control" rows="2" placeholder="Services rendered…"></textarea></div>
+</div><hr class="my-3"/>
+<div class="d-flex gap-2"><button type="submit" class="btn btn-teal px-4"><i class="bi bi-check-lg me-1"></i>Create Bill</button>
+<a href="{{ url_for('billing.list_billing') }}" class="btn btn-outline-secondary">Cancel</a></div>
+</form></div></div></div></div>
+{% endblock %}

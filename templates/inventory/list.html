@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Inventory{% endblock %}{% block breadcrumb %}Inventory{% endblock %}
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between">
+  <div><h2><i class="bi bi-box-seam me-2" style="color:#0d9488"></i>Inventory</h2><p>Medical supplies, equipment and stock levels</p></div>
+  {% if current_user.role == 'admin' %}<a href="{{ url_for('inventory.add_item') }}" class="btn btn-teal"><i class="bi bi-plus-lg me-1"></i>Add Item</a>{% endif %}
+</div>
+<div class="card mb-3"><div class="card-body py-2"><form method="GET" class="d-flex gap-2">
+  <select name="category" class="form-select w-auto"><option value="">All Categories</option>{% for c in categories %}<option {{ 'selected' if c==category_filter }}>{{ c }}</option>{% endfor %}</select>
+  <button class="btn btn-teal">Filter</button>
+  {% if category_filter %}<a href="{{ url_for('inventory.list_inventory') }}" class="btn btn-outline-secondary">Clear</a>{% endif %}
+</form></div></div>
+<div class="card"><div class="card-header py-3">Stock Items <span class="badge bg-secondary ms-1">{{ items|length }}</span></div>
+<div class="card-body p-0"><div class="table-responsive">
+<table class="table table-hover mb-0">
+  <thead><tr><th class="ps-3">Item</th><th>Category</th><th>Quantity</th><th>Unit Price</th><th>Supplier</th><th>Updated</th>{% if current_user.role=='admin' %}<th class="text-end pe-3">Actions</th>{% endif %}</tr></thead>
+  <tbody>
+  {% for item in items %}
+  <tr>
+    <td class="ps-3">
+      <strong>{{ item.item_name }}</strong>
+      {% if item.quantity < 50 %}<span class="badge bg-danger ms-1" style="font-size:.62rem">Low Stock</span>{% endif %}
+    </td>
+    <td><span class="badge bg-secondary bg-opacity-15 text-secondary">{{ item.category or '—' }}</span></td>
+    <td><span class="{{ 'text-danger fw-bold' if item.quantity < 50 else 'text-success fw-bold' }}">{{ item.quantity }}</span> <span class="text-muted" style="font-size:.8rem">{{ item.unit }}</span></td>
+    <td>Rs.{{ "%.2f"|format(item.unit_price) }}</td>
+    <td class="text-muted" style="font-size:.84rem">{{ item.supplier or '—' }}</td>
+    <td class="text-muted" style="font-size:.8rem">{{ item.last_updated.strftime('%d %b %Y') if item.last_updated else '—' }}</td>
+    {% if current_user.role == 'admin' %}
+    <td class="text-end pe-3">
+      <button class="btn btn-sm btn-outline-success me-1" onclick="restockModal({{ item.item_id }},'{{ item.item_name }}')" title="Restock"><i class="bi bi-plus-circle"></i></button>
+      <a href="{{ url_for('inventory.edit_item',item_id=item.item_id) }}" class="btn btn-sm btn-outline-primary me-1"><i class="bi bi-pencil"></i></a>
+      <form method="POST" action="{{ url_for('inventory.delete_item',item_id=item.item_id) }}" class="d-inline" onsubmit="return confirm('Remove {{ item.item_name }}?')">
+        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+    </td>{% endif %}
+  </tr>
+  {% else %}<tr><td colspan="7" class="text-center text-muted py-4">No inventory items.</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div></div></div>
+{% if current_user.role == 'admin' %}
+<div class="modal fade" id="restockMdl" tabindex="-1">
+  <div class="modal-dialog modal-sm"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Restock Item</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><p id="rstName" class="fw-semibold mb-3"></p><label class="form-label">Quantity to Add</label><input type="number" id="rstQty" class="form-control" min="1" value="100"/></div>
+    <div class="modal-footer"><button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-teal" onclick="confirmRestock()">Restock</button></div>
+  </div></div>
+</div>
+{% endif %}
+{% endblock %}
+{% block extra_js %}
+<script>
+let _rid = null;
+function restockModal(id, name) {
+  _rid = id; document.getElementById('rstName').textContent = name;
+  new bootstrap.Modal(document.getElementById('restockMdl')).show();
+}
+function confirmRestock() {
+  const qty = parseInt(document.getElementById('rstQty').value);
+  if (!qty || qty < 1) return;
+  fetch('/inventory/restock/' + _rid, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({quantity:qty})})
+  .then(r => r.json()).then(d => { if (d.success) location.reload(); });
+}
+</script>
+{% endblock %}

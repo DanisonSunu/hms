@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Patients{% endblock %}{% block breadcrumb %}Patients{% endblock %}
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between">
+  <div><h2><i class="bi bi-people me-2" style="color:#0d9488"></i>Patients</h2><p>Manage all registered patients</p></div>
+  {% if current_user.role in ('admin','staff') %}
+  <a href="{{ url_for('patients.add_patient') }}" class="btn btn-teal"><i class="bi bi-person-plus me-1"></i>Register Patient</a>
+  {% endif %}
+</div>
+<div class="card mb-3"><div class="card-body py-2">
+  <form method="GET" class="d-flex gap-2">
+    <input type="text" name="search" value="{{ search }}" class="form-control" placeholder="Search by name or phone…"/>
+    <button class="btn btn-teal px-4">Search</button>
+    {% if search %}<a href="{{ url_for('patients.list_patients') }}" class="btn btn-outline-secondary">Clear</a>{% endif %}
+  </form>
+</div></div>
+<div class="card"><div class="card-header py-3"><i class="bi bi-table me-1"></i>Patient Records <span class="badge bg-secondary ms-2">{{ patients|length }}</span></div>
+<div class="card-body p-0"><div class="table-responsive">
+  <table class="table table-hover mb-0">
+    <thead><tr><th class="ps-3">ID</th><th>Name</th><th>Age</th><th>Gender</th><th>Blood</th><th>Phone</th><th>Registered</th><th class="text-end pe-3">Actions</th></tr></thead>
+    <tbody>
+    {% for p in patients %}
+    <tr>
+      <td class="ps-3 text-muted">#{{ p.patient_id }}</td>
+      <td><strong>{{ p.name }}</strong></td><td>{{ p.age }}</td><td>{{ p.gender }}</td>
+      <td><span class="badge bg-danger bg-opacity-10 text-danger fw-semibold">{{ p.blood_group or '—' }}</span></td>
+      <td>{{ p.phone }}</td>
+      <td class="text-muted" style="font-size:.8rem">{{ p.registration_date.strftime('%d %b %Y') if p.registration_date else '—' }}</td>
+      <td class="text-end pe-3">
+        <a href="{{ url_for('patients.view_patient',patient_id=p.patient_id) }}" class="btn btn-sm btn-outline-info me-1"><i class="bi bi-eye"></i></a>
+        {% if current_user.role in ('admin','staff') %}
+        <a href="{{ url_for('patients.edit_patient',patient_id=p.patient_id) }}" class="btn btn-sm btn-outline-primary me-1"><i class="bi bi-pencil"></i></a>
+        {% endif %}
+        {% if current_user.role == 'admin' %}
+        <form method="POST" action="{{ url_for('patients.delete_patient',patient_id=p.patient_id) }}" class="d-inline" onsubmit="return confirm('Delete {{ p.name }}?')">
+          <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+        </form>{% endif %}
+      </td>
+    </tr>
+    {% else %}<tr><td colspan="8" class="text-center text-muted py-5"><i class="bi bi-person-x fs-2 d-block mb-2"></i>No patients found.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div></div></div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Medical Records{% endblock %}{% block breadcrumb %}Medical Records{% endblock %}
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between">
+  <div><h2><i class="bi bi-file-medical me-2" style="color:#0d9488"></i>Medical Records</h2><p>Patient diagnoses and prescriptions</p></div>
+  {% if current_user.role in ('admin','doctor') %}<a href="{{ url_for('records.add_record') }}" class="btn btn-teal"><i class="bi bi-plus-lg me-1"></i>New Record</a>{% endif %}
+</div>
+<div class="card mb-3"><div class="card-body py-2"><form method="GET" class="d-flex gap-2">
+  <input type="text" name="search" value="{{ search }}" class="form-control" placeholder="Search by patient name…"/>
+  <button class="btn btn-teal">Search</button>
+  {% if search %}<a href="{{ url_for('records.list_records') }}" class="btn btn-outline-secondary">Clear</a>{% endif %}
+</form></div></div>
+<div class="card"><div class="card-header py-3">Records <span class="badge bg-secondary ms-1">{{ records|length }}</span></div>
+<div class="card-body p-0"><table class="table table-hover mb-0">
+  <thead><tr><th class="ps-3">#</th><th>Patient</th><th>Doctor</th><th>Diagnosis</th><th>Date</th><th class="text-end pe-3">Actions</th></tr></thead>
+  <tbody>
+  {% for r in records %}
+  <tr>
+    <td class="ps-3 text-muted">{{ r.record_id }}</td><td><strong>{{ r.patient.name }}</strong></td><td>{{ r.doctor.name }}</td>
+    <td>{{ r.diagnosis[:55] }}{% if r.diagnosis|length > 55 %}…{% endif %}</td>
+    <td class="text-muted" style="font-size:.8rem">{{ r.date.strftime('%d %b %Y') if r.date else '—' }}</td>
+    <td class="text-end pe-3">
+      <a href="{{ url_for('records.view_record',record_id=r.record_id) }}" class="btn btn-sm btn-outline-info me-1"><i class="bi bi-eye"></i></a>
+      <a href="{{ url_for('records.edit_record',record_id=r.record_id) }}" class="btn btn-sm btn-outline-primary me-1"><i class="bi bi-pencil"></i></a>
+      {% if current_user.role == 'admin' %}
+      <form method="POST" action="{{ url_for('records.delete_record',record_id=r.record_id) }}" class="d-inline" onsubmit="return confirm('Delete record?')">
+        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>{% endif %}
+    </td>
+  </tr>
+  {% else %}<tr><td colspan="6" class="text-center text-muted py-4">No records found.</td></tr>{% endfor %}
+  </tbody>
+</table></div></div>
+{% endblock %}

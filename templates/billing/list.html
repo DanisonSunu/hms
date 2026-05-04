@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Billing{% endblock %}{% block breadcrumb %}Billing{% endblock %}
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between">
+  <div><h2><i class="bi bi-receipt me-2" style="color:#0d9488"></i>Billing</h2><p>Patient payment records</p></div>
+  {% if current_user.role in ('admin','staff') %}<a href="{{ url_for('billing.add_bill') }}" class="btn btn-teal"><i class="bi bi-plus-lg me-1"></i>Create Bill</a>{% endif %}
+</div>
+<div class="row g-3 mb-4">
+  <div class="col-md-4"><div class="stat-card"><div class="stat-icon" style="background:#f0fdf4;color:#16a34a"><i class="bi bi-cash-stack"></i></div><div><div class="stat-value">Rs.{{ "%.0f"|format(total_paid) }}</div><div class="stat-label">Total Collected</div></div></div></div>
+  <div class="col-md-4"><div class="stat-card"><div class="stat-icon" style="background:#fef9c3;color:#ca8a04"><i class="bi bi-hourglass-split"></i></div><div><div class="stat-value">Rs.{{ "%.0f"|format(total_pending) }}</div><div class="stat-label">Pending</div></div></div></div>
+  <div class="col-md-4"><div class="stat-card"><div class="stat-icon" style="background:#e0f2fe;color:#0369a1"><i class="bi bi-graph-up-arrow"></i></div><div><div class="stat-value">Rs.{{ "%.0f"|format(total_billed) }}</div><div class="stat-label">Total Billed</div></div></div></div>
+</div>
+<div class="card mb-3"><div class="card-body py-2"><form method="GET" class="d-flex gap-2">
+  <select name="status" class="form-select w-auto"><option value="">All Statuses</option>{% for s in ['Pending','Paid','Cancelled'] %}<option {{ 'selected' if s==status_filter }}>{{ s }}</option>{% endfor %}</select>
+  <button class="btn btn-teal">Filter</button>
+  {% if status_filter %}<a href="{{ url_for('billing.list_billing') }}" class="btn btn-outline-secondary">Clear</a>{% endif %}
+</form></div></div>
+<div class="card"><div class="card-body p-0"><div class="table-responsive">
+<table class="table table-hover mb-0">
+  <thead><tr><th class="ps-3">Bill #</th><th>Patient</th><th>Description</th><th>Amount</th><th>Date</th><th>Status</th><th class="text-end pe-3">Actions</th></tr></thead>
+  <tbody>
+  {% for b in bills %}
+  <tr>
+    <td class="ps-3 text-muted">#{{ b.bill_id }}</td><td><strong>{{ b.patient.name }}</strong></td>
+    <td class="text-muted" style="font-size:.84rem">{{ b.description or '—' }}</td>
+    <td class="fw-semibold">Rs.{{ "%.2f"|format(b.amount) }}</td>
+    <td class="text-muted" style="font-size:.8rem">{{ b.billing_date.strftime('%d %b %Y') if b.billing_date else '—' }}</td>
+    <td><span class="badge-status status-{{ b.payment_status|lower }}">{{ b.payment_status }}</span></td>
+    <td class="text-end pe-3">
+      {% if b.payment_status == 'Pending' %}
+      <button class="btn btn-sm btn-success me-1" onclick="markPaid({{ b.bill_id }},this)" title="Mark Paid"><i class="bi bi-check-circle"></i></button>
+      {% endif %}
+      <a href="{{ url_for('billing.edit_bill',bill_id=b.bill_id) }}" class="btn btn-sm btn-outline-primary me-1"><i class="bi bi-pencil"></i></a>
+      {% if current_user.role == 'admin' %}
+      <form method="POST" action="{{ url_for('billing.delete_bill',bill_id=b.bill_id) }}" class="d-inline" onsubmit="return confirm('Delete bill #{{ b.bill_id }}?')">
+        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>{% endif %}
+    </td>
+  </tr>
+  {% else %}<tr><td colspan="7" class="text-center text-muted py-4">No bills found.</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div></div></div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function markPaid(billId, btn) {
+  fetch('/billing/pay/' + billId, {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'})
+  .then(r => r.json()).then(data => {
+    if (data.success) {
+      const row = btn.closest('tr');
+      row.querySelector('.badge-status').className = 'badge-status status-paid';
+      row.querySelector('.badge-status').textContent = 'Paid';
+      btn.remove();
+    }
+  });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Edit Bill{% endblock %}{% block breadcrumb %}Billing / Edit{% endblock %}
+{% block content %}
+<div class="page-header"><h2><i class="bi bi-pencil-square me-2" style="color:#0d9488"></i>Edit Bill #{{ bill.bill_id }}</h2></div>
+<div class="row justify-content-center"><div class="col-lg-7"><div class="card"><div class="card-header py-3">Bill Details</div>
+<div class="card-body"><form method="POST"><div class="row g-3">
+  <div class="col-12"><label class="form-label">Patient *</label>
+    <select name="patient_id" class="form-select" required>{% for p in patients %}<option value="{{ p.patient_id }}" {{ 'selected' if p.patient_id==bill.patient_id }}>{{ p.name }}</option>{% endfor %}</select></div>
+  <div class="col-md-6"><label class="form-label">Amount (Rs.) *</label><input type="number" name="amount" class="form-control" step="0.01" value="{{ bill.amount }}" required/></div>
+  <div class="col-md-6"><label class="form-label">Payment Status</label>
+    <select name="payment_status" class="form-select">{% for s in ['Pending','Paid','Cancelled'] %}<option {{ 'selected' if s==bill.payment_status }}>{{ s }}</option>{% endfor %}</select></div>
+  <div class="col-12"><label class="form-label">Description</label><textarea name="description" class="form-control" rows="2">{{ bill.description or '' }}</textarea></div>
+</div><hr class="my-3"/>
+<div class="d-flex gap-2"><button type="submit" class="btn btn-teal px-4">Save Changes</button>
+<a href="{{ url_for('billing.list_billing') }}" class="btn btn-outline-secondary">Cancel</a></div>
+</form></div></div></div></div>
+{% endblock %}
