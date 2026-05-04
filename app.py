@@ -144,6 +144,7 @@ def seed_database():
     db.session.commit()
     print("[HMS] Seeding complete.")
 
+app = create_app()
+
 if __name__ == '__main__':
-    app = create_app()
     app.run(debug=True, host='0.0.0.0', port=5000)
