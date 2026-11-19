@@ -7,6 +7,7 @@ Default credentials:
   doctor1 / doctor123
   staff1  / staff123
 """
+import os
 from flask import Flask
 from flask_login import LoginManager
 from models.database import db
@@ -23,8 +24,20 @@ from routes.dashboard    import dashboard_bp
 
 def create_app():
     app = Flask(__name__)
-    app.config['SECRET_KEY'] = 'hms-secret-key-change-in-production'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///hms.db'
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'hms-secret-key-change-in-production')
+
+    # Vercel's filesystem is read-only except /tmp, so SQLite must live there.
+    # /tmp is wiped on cold starts (data resets and is re-seeded). For persistent
+    # data, set DATABASE_URL to a hosted database (e.g. Neon/Supabase Postgres).
+    db_url = os.environ.get('DATABASE_URL')
+    if db_url:
+        if db_url.startswith('postgres://'):
+            db_url = db_url.replace('postgres://', 'postgresql://', 1)
+    elif os.environ.get('VERCEL'):
+        db_url = 'sqlite:////tmp/hms.db'
+    else:
+        db_url = 'sqlite:///hms.db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)
